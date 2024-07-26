@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  tests        Test[]
+  // courses   Course[]
+  flashcards   Flashcard[]
+  notes        Note[]
+  badges       Badge[]
+  Auth         Auth?
+  name         String
+  email        String      @unique
+  psychometric Float?
+}
+
+model Auth {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String   @unique @db.ObjectId
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  password   String
+  token      Bytes?
+  isAdmin    Boolean  @default(false)
+  isLoggedIn Boolean  @default(false)
+}
+
+model Test {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?    @db.ObjectId
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  data      Question[]
+  type      String     @default("Private")
+  result    Float?
+}
+
+model Question {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  test          Test?    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  testId        String?  @db.ObjectId
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  question      String
+  options       String[]
+  correctAnswer String
+  userAnswer    String?
+}
+
+model Note {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?  @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String
+  content   String
+}
+
+model Flashcard {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?  @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  question  String
+  answer    String
+}
+
+model Badge {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?  @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  asset     String
+  for       String
+}
+
+// model Course {
+//   id            String       @id @default(auto()) @map("_id") @db.ObjectId
+//   user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   userId        String?      @db.ObjectId
+//   createdAt     DateTime     @default(now())
+//   updatedAt     DateTime     @updatedAt
+//   progress      CourseType[]
+//   name          String
+//   totalProgress Int          @default(0)
+// }
+
+// model CourseType {
+//   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+//   course    Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+//   courseId  String?  @db.ObjectId
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   name      String
+//   done      Int      @default(0)
+//   outOf     Int
+// }
